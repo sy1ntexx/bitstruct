@@ -17,5 +17,5 @@ bitstruct::bitstruct! {
 ## Installation
 ```toml
 [dependencies.bitstruct]
-git = "https://github.com/sy1ntexx/bistruct"
+git = "https://github.com/sy1ntexx/bitstruct.git"
 ```
