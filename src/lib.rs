@@ -1,31 +1,13 @@
 #![no_std]
 
 #[macro_export]
-macro_rules! __get_offset_abs {
-    ($from:tt..$to:tt) => { 0 };
-    ($from:tt..=$to:tt) => { 1 };
-}
-
-#[macro_export]
-macro_rules! __get_offset_from {
-    ($from:tt..$to:tt) => { $from };
-    ($from:tt..=$to:tt) => { $from };
-}
-
-#[macro_export]
-macro_rules! __get_offset_to {
-    ($from:tt..$to:tt) => { $to };
-    ($from:tt..=$to:tt) => { $to };
-}
-
-#[macro_export]
 macro_rules! bitstruct {
     {
         $(
             $(#[$($outter:tt)*])*
             $vs:vis struct $name:ident: $inner:ty {
                 $(
-                    $f_vs:vis $f_get:ident$(($f_set:ident))?: [$($range:tt)*]
+                    $f_vs:vis $f_get:ident: $from:tt..=$to:tt
                 ),*
             }
         )*
@@ -36,14 +18,34 @@ macro_rules! bitstruct {
             $vs struct $name($inner);
     
             impl $name {
+                $vs fn bits(&self) -> $inner {
+                    self.0
+                }
+
+                $vs fn from_bits(bits: $inner) -> Self {
+                    Self(bits)
+                }
+
                 $(
                     $f_vs fn $f_get(&self) -> $inner {
-                        let mask = !(<$inner>::MAX << ($crate::__get_offset_to!($($range)*) + $crate::__get_offset_abs!($($range)*)));
+                        let mask = !(<$inner>::MAX << $to + 1);
                         let m1 = self.0 & mask;
-                        let m2 = m1 >> $crate::__get_offset_from!($($range)*);
+                        let m2 = m1 >> $from;
                         m2
                     }
                 )*
+            }
+
+            impl From<$inner> for $name {
+                fn from(v: $inner) -> Self {
+                    Self(v)
+                }
+            }
+
+            impl From<$name> for $inner {
+                fn from(v: $name) -> Self {
+                    v.0
+                }
             }
         )*
     }
